@@ -1,36 +1,100 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Demo Interactiva Grupo CIBest – IA + AWS
 
-## Getting Started
+Esta es una aplicación de experiencia interactiva para un stand de innovación financiera, desarrollada con Next.js, TypeScript, Tailwind CSS y AWS Amplify.
 
-First, run the development server:
+## Descripción del Flujo
+
+La aplicación guía al usuario a través de una serie de pantallas en secuencia:
+
+1. **Pantalla de Registro**: Formulario para nombre, correo y cargo.
+2. **Pantalla de Pregunta Inicial**: Área para formular preguntas a la IA con sugerencias.
+3. **Pantalla de Orquestación de Agentes**: Animación visual de agentes procesando la consulta.
+4. **Pantalla de Dashboard Consolidado**: Visualización de datos actuales y proyecciones.
+5. **Pantalla de Generación de Resultados**: Preview de reporte PDF y correo.
+6. **Correo Mockup**: Simulación del correo recibido.
+
+## Tecnologías Utilizadas
+
+- **Frontend**: Next.js 15, React 19, TypeScript, Tailwind CSS
+- **Gráficos**: Recharts
+- **Formularios**: React Hook Form
+- **AWS**: Amplify (para futuras integraciones)
+
+## Instalación y Ejecución
+
+1. Instala las dependencias:
+   ```bash
+   npm install
+   ```
+
+2. Ejecuta el servidor de desarrollo:
+   ```bash
+   npm run dev
+   ```
+
+3. Abre [http://localhost:3000](http://localhost:3000) en tu navegador.
+
+## Construcción para Producción
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm run build
+npm start
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Despliegue en AWS
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Para desplegar en AWS Amplify:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. Conecta el repositorio a AWS Amplify.
+2. Configura las variables de entorno si es necesario.
+3. Despliega automáticamente.
 
-## Learn More
+## Funcionalidades
 
-To learn more about Next.js, take a look at the following resources:
+- ✅ Formularios con validación (React Hook Form)
+- ✅ Animaciones y transiciones
+- ✅ Gráficos interactivos (Recharts)
+- ✅ Navegación tipo wizard
+- ✅ Persistencia de datos (localStorage)
+- ✅ Simulación de envío de correos (mock AWS SES)
+- ✅ Descarga de reportes PDF (mock)
+- ✅ Diseño moderno con colores corporativos
+- ✅ Configuración de AWS Amplify lista para despliegue
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Próximos Pasos para AWS
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. **Configurar Credenciales AWS**:
+   ```bash
+   aws configure
+   # Ingresar Access Key, Secret Key, Region, Output format
+   ```
 
-## Deploy on Vercel
+2. **Inicializar Amplify**:
+   ```bash
+   amplify init
+   ```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+3. **Agregar Servicios**:
+   ```bash
+   amplify add auth      # Cognito para autenticación
+   amplify add api       # API Gateway + Lambda
+   amplify add storage   # S3 para PDFs
+   amplify add function  # Lambda para IA y correos
+   ```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+4. **Desplegar**:
+   ```bash
+   amplify push
+   amplify publish
+   ```
+
+## Variables de Entorno
+
+Crear `.env.local` con:
+```
+NEXT_PUBLIC_USER_POOL_ID=your_user_pool_id
+NEXT_PUBLIC_USER_POOL_CLIENT_ID=your_client_id
+NEXT_PUBLIC_AWS_REGION=us-east-1
+NEXT_PUBLIC_API_ENDPOINT=your_api_endpoint
+NEXT_PUBLIC_S3_BUCKET=your_bucket_name
+```
