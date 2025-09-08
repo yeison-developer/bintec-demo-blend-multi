@@ -98,3 +98,4 @@ NEXT_PUBLIC_AWS_REGION=us-east-1
 NEXT_PUBLIC_API_ENDPOINT=your_api_endpoint
 NEXT_PUBLIC_S3_BUCKET=your_bucket_name
 ```
+# Build fix
