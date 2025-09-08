@@ -1,22 +1,10 @@
-import { Amplify } from 'aws-amplify';
+// Configuración AWS simplificada
 
-const amplifyConfig = {
-  API: {
-    REST: {
-      BintecAPI: {
-        endpoint: process.env.NEXT_PUBLIC_API_ENDPOINT,
-        region: process.env.NEXT_PUBLIC_AWS_REGION || 'us-east-1'
-      }
-    }
-  },
-  Storage: {
-    S3: {
-      bucket: process.env.NEXT_PUBLIC_S3_BUCKET,
-      region: process.env.NEXT_PUBLIC_AWS_REGION || 'us-east-1'
-    }
-  }
+// Configuración simplificada - no se necesita Amplify SDK para esta demo
+export const awsConfig = {
+  region: process.env.NEXT_PUBLIC_AWS_REGION || 'us-east-1',
+  apiEndpoint: process.env.NEXT_PUBLIC_API_ENDPOINT,
+  s3Bucket: process.env.NEXT_PUBLIC_S3_BUCKET
 };
 
-Amplify.configure(amplifyConfig);
-
-export default amplifyConfig;
+export default awsConfig;
