@@ -23,7 +23,7 @@ export default function ResultsGeneration({ userData, question, nextStep }: Resu
       } else {
         alert('Error enviando correo: ' + result.error);
       }
-    } catch (error) {
+    } catch {
       alert('Error enviando correo');
     } finally {
       setSending(false);
@@ -38,7 +38,7 @@ export default function ResultsGeneration({ userData, question, nextStep }: Resu
       } else {
         alert('Error generando PDF: ' + result.error);
       }
-    } catch (error) {
+    } catch {
       alert('Error generando PDF');
     }
   };

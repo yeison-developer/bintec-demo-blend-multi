@@ -1,6 +1,12 @@
 const API_ENDPOINT = process.env.NEXT_PUBLIC_API_ENDPOINT;
 
-export const sendEmail = async (userData: any, question: string) => {
+interface UserData {
+  name: string;
+  email: string;
+  position: string;
+}
+
+export const sendEmail = async (userData: UserData, question: string) => {
   try {
     const response = await fetch(`${API_ENDPOINT}/send-email`, {
       method: 'POST',
@@ -22,7 +28,7 @@ export const sendEmail = async (userData: any, question: string) => {
   }
 };
 
-export const generatePDF = async (userData: any, question: string) => {
+export const generatePDF = async (userData: UserData, question: string) => {
   try {
     const response = await fetch(`${API_ENDPOINT}/generate-pdf`, {
       method: 'POST',
