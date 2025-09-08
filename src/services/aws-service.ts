@@ -49,3 +49,23 @@ export const generatePDF = async (userData: UserData, question: string) => {
     throw error;
   }
 };
+
+export const analyzeWithBedrock = async (userData: UserData, question: string) => {
+  try {
+    const response = await fetch(`${API_ENDPOINT}/bedrock-analysis`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        question: question,
+        userData: userData
+      })
+    });
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Error with Bedrock analysis:', error);
+    throw error;
+  }
+};

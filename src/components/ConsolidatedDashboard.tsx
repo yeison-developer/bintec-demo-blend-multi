@@ -3,6 +3,7 @@
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 interface ConsolidatedDashboardProps {
+  analysisResult?: any;
   nextStep: () => void;
 }
 
@@ -29,7 +30,7 @@ const recommendations = [
   'Monitorear clientes en riesgo alto'
 ];
 
-export default function ConsolidatedDashboard({ nextStep }: ConsolidatedDashboardProps) {
+export default function ConsolidatedDashboard({ analysisResult, nextStep }: ConsolidatedDashboardProps) {
   return (
     <div className="bg-white p-8 rounded-lg shadow-lg max-w-6xl w-full">
       <h2 className="text-xl font-semibold mb-6">Dashboard Consolidado</h2>
@@ -62,7 +63,33 @@ export default function ConsolidatedDashboard({ nextStep }: ConsolidatedDashboar
         </div>
       </div>
       <div className="mb-6">
-        <h3 className="font-medium mb-4">Panel de Recomendaciones</h3>
+        <h3 className="font-medium mb-4">Análisis IA + Recomendaciones</h3>
+        {analysisResult?.analysis && (
+          <div className="bg-blue-50 p-4 rounded mb-4">
+            <h4 className="font-medium text-blue-800 mb-2">Análisis Prospectivo:</h4>
+            <p className="text-sm text-blue-700">{analysisResult.analysis}</p>
+          </div>
+        )}
+        {analysisResult?.prospectiveData && (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+            <div className="bg-green-50 p-3 rounded">
+              <p className="text-sm text-green-600">Crecimiento Proyectado</p>
+              <p className="font-bold text-green-800">{analysisResult.prospectiveData.growthProjection}</p>
+            </div>
+            <div className="bg-yellow-50 p-3 rounded">
+              <p className="text-sm text-yellow-600">Nivel de Riesgo</p>
+              <p className="font-bold text-yellow-800">{analysisResult.prospectiveData.riskLevel}</p>
+            </div>
+            <div className="bg-purple-50 p-3 rounded">
+              <p className="text-sm text-purple-600">Marco Temporal</p>
+              <p className="font-bold text-purple-800">{analysisResult.prospectiveData.timeframe}</p>
+            </div>
+            <div className="bg-blue-50 p-3 rounded">
+              <p className="text-sm text-blue-600">Confianza</p>
+              <p className="font-bold text-blue-800">{analysisResult.prospectiveData.confidence}</p>
+            </div>
+          </div>
+        )}
         <ul className="list-disc list-inside space-y-2">
           {recommendations.map((rec, index) => (
             <li key={index}>{rec}</li>

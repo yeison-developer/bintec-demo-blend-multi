@@ -62,6 +62,11 @@ aws lambda update-function-code \
     --function-name bintec-generate-pdf \
     --zip-file fileb://generate-pdf.zip
 
+zip -r bedrock-analysis.zip bedrock-analysis.js
+aws lambda update-function-code \
+    --function-name bintec-bedrock-analysis \
+    --zip-file fileb://bedrock-analysis.zip
+
 cd ..
 
 # 5. Crear archivo .env.local

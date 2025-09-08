@@ -13,6 +13,7 @@ export default function Home() {
   const [step, setStep] = useState(0);
   const [userData, setUserData] = useState({ name: '', email: '', position: '' });
   const [question, setQuestion] = useState('');
+  const [analysisResult, setAnalysisResult] = useState(null);
 
   // Load from localStorage on mount
   useEffect(() => {
@@ -42,8 +43,8 @@ export default function Home() {
   const screens = [
     <Registration key="reg" userData={userData} setUserData={setUserData} nextStep={nextStep} />,
     <InitialQuestion key="question" question={question} setQuestion={setQuestion} nextStep={nextStep} />,
-    <AgentOrchestration key="orchestration" nextStep={nextStep} />,
-    <ConsolidatedDashboard key="dashboard" nextStep={nextStep} />,
+    <AgentOrchestration key="orchestration" userData={userData} question={question} setAnalysisResult={setAnalysisResult} nextStep={nextStep} />,
+    <ConsolidatedDashboard key="dashboard" analysisResult={analysisResult} nextStep={nextStep} />,
     <ResultsGeneration key="results" userData={userData} question={question} nextStep={nextStep} />,
     <EmailMockup key="email" userData={userData} />
   ];

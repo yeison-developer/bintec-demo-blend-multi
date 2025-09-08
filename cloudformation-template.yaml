@@ -52,6 +52,10 @@ Resources:
                   - s3:PutObject
                   - s3:GetObject
                 Resource: !Sub '${ReportsBucket.Arn}/*'
+              - Effect: Allow
+                Action:
+                  - bedrock:InvokeModel
+                Resource: '*'
 
   # Lambda function for sending emails
   SendEmailFunction:
@@ -88,6 +92,22 @@ Resources:
           const AWS = require('aws-sdk');
           exports.handler = async (event) => {
             return { statusCode: 200, body: JSON.stringify({ success: true }) };
+          };
+
+  # Lambda function for Bedrock analysis
+  BedrockAnalysisFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: bintec-bedrock-analysis
+      Runtime: nodejs18.x
+      Handler: index.handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Timeout: 30
+      Code:
+        ZipFile: |
+          const AWS = require('aws-sdk');
+          exports.handler = async (event) => {
+            return { statusCode: 200, body: JSON.stringify({ success: true, analysis: 'Análisis generado por IA' }) };
           };
 
   # API Gateway
@@ -138,12 +158,32 @@ Resources:
         IntegrationHttpMethod: POST
         Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GeneratePDFFunction.Arn}/invocations'
 
+  BedrockAnalysisResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref ApiGateway
+      ParentId: !GetAtt ApiGateway.RootResourceId
+      PathPart: bedrock-analysis
+
+  BedrockAnalysisMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref ApiGateway
+      ResourceId: !Ref BedrockAnalysisResource
+      HttpMethod: POST
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${BedrockAnalysisFunction.Arn}/invocations'
+
   # API Gateway Deployment
   ApiDeployment:
     Type: AWS::ApiGateway::Deployment
     DependsOn:
       - SendEmailMethod
       - GeneratePDFMethod
+      - BedrockAnalysisMethod
     Properties:
       RestApiId: !Ref ApiGateway
       StageName: prod
@@ -161,6 +201,14 @@ Resources:
     Type: AWS::Lambda::Permission
     Properties:
       FunctionName: !Ref GeneratePDFFunction
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGateway}/*/*'
+
+  BedrockAnalysisLambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref BedrockAnalysisFunction
       Action: lambda:InvokeFunction
       Principal: apigateway.amazonaws.com
       SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGateway}/*/*'
