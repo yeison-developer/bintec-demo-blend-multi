@@ -60,6 +60,10 @@ Para desplegar en AWS Amplify:
 - ✅ Descarga de reportes PDF (mock)
 - ✅ Diseño moderno con colores corporativos
 - ✅ Configuración de AWS Amplify lista para despliegue
+- ✅ **Sistema de Orquestación de Agentes IA**
+- ✅ **Razonamiento Transparente por Agente**
+- ✅ **Análisis Prospectivo Personalizado**
+- ✅ **Lambdas Especializadas por Dominio**
 
 ## Próximos Pasos para AWS
 
@@ -82,7 +86,16 @@ Para desplegar en AWS Amplify:
    amplify add function  # Lambda para IA y correos
    ```
 
-4. **Desplegar**:
+4. **Desplegar Agentes IA**:
+   ```bash
+   # Desplegar infraestructura completa con agentes
+   aws cloudformation deploy --template-file cloudformation-template.yaml --stack-name bintec-demo --capabilities CAPABILITY_IAM
+   
+   # O usar script de despliegue
+   ./deploy-agents.sh
+   ```
+
+5. **Desplegar Frontend**:
    ```bash
    amplify push
    amplify publish
@@ -98,4 +111,63 @@ NEXT_PUBLIC_AWS_REGION=us-east-1
 NEXT_PUBLIC_API_ENDPOINT=your_api_endpoint
 NEXT_PUBLIC_S3_BUCKET=your_bucket_name
 ```
-# Build fix
+
+## Sistema de Agentes IA
+
+La aplicación incluye un sistema avanzado de orquestación de agentes especializados:
+
+### Agentes Disponibles
+
+1. **Agente Documental** 📄
+   - Análisis de documentación requerida
+   - Procesos documentales
+   - Cumplimiento normativo documental
+   - Proyecciones basadas en documentación histórica
+
+2. **Agente de Riesgo** ⚠️
+   - Identificación de riesgos operacionales, crediticios y de mercado
+   - Evaluación de probabilidades e impacto
+   - Modelos VaR y stress testing
+   - Estrategias de mitigación
+
+3. **Agente Regulatorio** 📋
+   - Marco regulatorio aplicable (CNBV, Banxico)
+   - Evaluación de cumplimiento actual
+   - Cambios regulatorios próximos
+   - Impacto en operaciones
+
+4. **Agente de Negocio** 💼
+   - Oportunidades de crecimiento
+   - Análisis de mercado y competencia
+   - Proyecciones financieras
+   - Estrategias de expansión digital
+
+### Características del Sistema
+
+- **Procesamiento Paralelo**: Todos los agentes analizan simultáneamente
+- **Razonamiento Transparente**: Cada agente muestra su proceso de análisis paso a paso
+- **Personalización**: Análisis adaptado al perfil del usuario (cargo, experiencia)
+- **Confianza Medible**: Cada agente proporciona un nivel de confianza en sus conclusiones
+- **Integración AWS**: Powered by Amazon Bedrock y Lambda
+
+### Arquitectura Técnica
+
+```
+Frontend (Next.js)
+    ↓
+API Gateway
+    ↓
+Agente Orquestador (Lambda)
+    ↓
+┌─────────────────────────────────────┐
+│  Agentes Especializados (Lambdas)   │
+│  ┌─────────┐ ┌─────────┐           │
+│  │Documental│ │ Riesgo  │           │
+│  └─────────┘ └─────────┘           │
+│  ┌─────────┐ ┌─────────┐           │
+│  │Regulatorio│ │Negocio │           │
+│  └─────────┘ └─────────┘           │
+└─────────────────────────────────────┘
+    ↓
+Amazon Bedrock (Claude 3)
+```

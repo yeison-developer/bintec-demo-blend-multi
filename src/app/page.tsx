@@ -39,6 +39,7 @@ export default function Home() {
   }, [step]);
 
   const nextStep = () => setStep(step + 1);
+  const goToRegistration = () => setStep(0);
 
   const screens = [
     <Registration key="reg" userData={userData} setUserData={setUserData} nextStep={nextStep} />,
@@ -46,11 +47,11 @@ export default function Home() {
     <AgentOrchestration key="orchestration" userData={userData} question={question} setAnalysisResult={setAnalysisResult} nextStep={nextStep} />,
     <ConsolidatedDashboard key="dashboard" analysisResult={analysisResult} nextStep={nextStep} />,
     <ResultsGeneration key="results" userData={userData} question={question} nextStep={nextStep} />,
-    <EmailMockup key="email" userData={userData} />
+    <EmailMockup key="email" userData={userData} goToRegistration={goToRegistration} />
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-gray-100 flex items-center justify-center p-4">
       {screens[step]}
     </div>
   );

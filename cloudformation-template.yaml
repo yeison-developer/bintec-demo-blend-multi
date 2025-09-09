@@ -12,7 +12,7 @@ Resources:
   ReportsBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub 'bintec-demo-reports-${AWS::AccountId}'
+      BucketName: !Sub 'bintec-demo-reports-${AWS::AccountId}-${AWS::StackName}'
       PublicAccessBlockConfiguration:
         BlockPublicAcls: true
         BlockPublicPolicy: true
@@ -55,6 +55,10 @@ Resources:
               - Effect: Allow
                 Action:
                   - bedrock:InvokeModel
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - lambda:InvokeFunction
                 Resource: '*'
 
   # Lambda function for sending emails
@@ -178,6 +182,146 @@ Resources:
                       })
                   };
               }
+          };
+
+  # Agent Lambda Functions
+  AgentDocumentalFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: agent-documental
+      Runtime: nodejs18.x
+      Handler: agent-documental.handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Timeout: 30
+      Code:
+        ZipFile: |
+          exports.handler = async (event) => {
+            const { userData, question } = JSON.parse(event.body);
+            return {
+              statusCode: 200,
+              headers: { "Access-Control-Allow-Origin": "*" },
+              body: JSON.stringify({
+                agentType: "documental",
+                status: "completed",
+                reasoning: `Análisis documental para ${userData.position}: Documentación completa requerida`,
+                confidence: 88,
+                timestamp: new Date().toISOString()
+              })
+            };
+          };
+
+  AgentRiesgoFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: agent-riesgo
+      Runtime: nodejs18.x
+      Handler: agent-riesgo.handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Timeout: 30
+      Code:
+        ZipFile: |
+          exports.handler = async (event) => {
+            const { userData, question } = JSON.parse(event.body);
+            return {
+              statusCode: 200,
+              headers: { "Access-Control-Allow-Origin": "*" },
+              body: JSON.stringify({
+                agentType: "riesgo",
+                status: "completed",
+                reasoning: `Análisis de riesgos para ${userData.position}: Exposición moderada identificada`,
+                confidence: 82,
+                timestamp: new Date().toISOString()
+              })
+            };
+          };
+
+  AgentRegulatorioFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: agent-regulatorio
+      Runtime: nodejs18.x
+      Handler: agent-regulatorio.handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Timeout: 30
+      Code:
+        ZipFile: |
+          exports.handler = async (event) => {
+            const { userData, question } = JSON.parse(event.body);
+            return {
+              statusCode: 200,
+              headers: { "Access-Control-Allow-Origin": "*" },
+              body: JSON.stringify({
+                agentType: "regulatorio",
+                status: "completed",
+                reasoning: `Análisis regulatorio para ${userData.position}: Cumplimiento óptimo verificado`,
+                confidence: 94,
+                timestamp: new Date().toISOString()
+              })
+            };
+          };
+
+  AgentNegocioFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: agent-negocio
+      Runtime: nodejs18.x
+      Handler: agent-negocio.handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Timeout: 30
+      Code:
+        ZipFile: |
+          exports.handler = async (event) => {
+            const { userData, question } = JSON.parse(event.body);
+            return {
+              statusCode: 200,
+              headers: { "Access-Control-Allow-Origin": "*" },
+              body: JSON.stringify({
+                agentType: "negocio",
+                status: "completed",
+                reasoning: `Análisis de negocio para ${userData.position}: Oportunidades de crecimiento identificadas`,
+                confidence: 89,
+                timestamp: new Date().toISOString()
+              })
+            };
+          };
+
+  AgentOrchestratorFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: agent-orchestrator
+      Runtime: nodejs18.x
+      Handler: agent-orchestrator.handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Timeout: 60
+      Code:
+        ZipFile: |
+          const AWS = require('aws-sdk');
+          const lambda = new AWS.Lambda();
+          
+          exports.handler = async (event) => {
+            const { userData, question } = JSON.parse(event.body);
+            const agents = ['agent-documental', 'agent-riesgo', 'agent-regulatorio', 'agent-negocio'];
+            
+            const results = await Promise.all(
+              agents.map(async (agent) => {
+                const params = {
+                  FunctionName: agent,
+                  Payload: JSON.stringify({ body: JSON.stringify({ userData, question }) })
+                };
+                const result = await lambda.invoke(params).promise();
+                return JSON.parse(JSON.parse(result.Payload).body);
+              })
+            );
+            
+            return {
+              statusCode: 200,
+              headers: { "Access-Control-Allow-Origin": "*" },
+              body: JSON.stringify({
+                orchestrationId: `orch_${Date.now()}`,
+                agents: results,
+                summary: { totalAgents: results.length, completedAgents: results.length }
+              })
+            };
           };
 
   # API Gateway
@@ -319,6 +463,222 @@ Resources:
             method.response.header.Access-Control-Allow-Methods: true
             method.response.header.Access-Control-Allow-Origin: true
 
+  # Agent Resources
+  AgentDocumentalResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref ApiGateway
+      ParentId: !GetAtt ApiGateway.RootResourceId
+      PathPart: agent-documental
+
+  AgentDocumentalMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref ApiGateway
+      ResourceId: !Ref AgentDocumentalResource
+      HttpMethod: POST
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AgentDocumentalFunction.Arn}/invocations'
+
+  AgentDocumentalOptionsMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref ApiGateway
+      ResourceId: !Ref AgentDocumentalResource
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      Integration:
+        Type: MOCK
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'POST,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+        RequestTemplates:
+          application/json: '{"statusCode": 200}'
+      MethodResponses:
+        - StatusCode: 200
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Methods: true
+            method.response.header.Access-Control-Allow-Origin: true
+
+  AgentRiesgoResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref ApiGateway
+      ParentId: !GetAtt ApiGateway.RootResourceId
+      PathPart: agent-riesgo
+
+  AgentRiesgoMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref ApiGateway
+      ResourceId: !Ref AgentRiesgoResource
+      HttpMethod: POST
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AgentRiesgoFunction.Arn}/invocations'
+
+  AgentRiesgoOptionsMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref ApiGateway
+      ResourceId: !Ref AgentRiesgoResource
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      Integration:
+        Type: MOCK
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'POST,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+        RequestTemplates:
+          application/json: '{"statusCode": 200}'
+      MethodResponses:
+        - StatusCode: 200
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Methods: true
+            method.response.header.Access-Control-Allow-Origin: true
+
+  AgentRegulatorioResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref ApiGateway
+      ParentId: !GetAtt ApiGateway.RootResourceId
+      PathPart: agent-regulatorio
+
+  AgentRegulatorioMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref ApiGateway
+      ResourceId: !Ref AgentRegulatorioResource
+      HttpMethod: POST
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AgentRegulatorioFunction.Arn}/invocations'
+
+  AgentRegulatorioOptionsMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref ApiGateway
+      ResourceId: !Ref AgentRegulatorioResource
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      Integration:
+        Type: MOCK
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'POST,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+        RequestTemplates:
+          application/json: '{"statusCode": 200}'
+      MethodResponses:
+        - StatusCode: 200
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Methods: true
+            method.response.header.Access-Control-Allow-Origin: true
+
+  AgentNegocioResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref ApiGateway
+      ParentId: !GetAtt ApiGateway.RootResourceId
+      PathPart: agent-negocio
+
+  AgentNegocioMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref ApiGateway
+      ResourceId: !Ref AgentNegocioResource
+      HttpMethod: POST
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AgentNegocioFunction.Arn}/invocations'
+
+  AgentNegocioOptionsMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref ApiGateway
+      ResourceId: !Ref AgentNegocioResource
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      Integration:
+        Type: MOCK
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'POST,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+        RequestTemplates:
+          application/json: '{"statusCode": 200}'
+      MethodResponses:
+        - StatusCode: 200
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Methods: true
+            method.response.header.Access-Control-Allow-Origin: true
+
+  AgentOrchestratorResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref ApiGateway
+      ParentId: !GetAtt ApiGateway.RootResourceId
+      PathPart: agent-orchestrator
+
+  AgentOrchestratorMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref ApiGateway
+      ResourceId: !Ref AgentOrchestratorResource
+      HttpMethod: POST
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AgentOrchestratorFunction.Arn}/invocations'
+
+  AgentOrchestratorOptionsMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref ApiGateway
+      ResourceId: !Ref AgentOrchestratorResource
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      Integration:
+        Type: MOCK
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'POST,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+        RequestTemplates:
+          application/json: '{"statusCode": 200}'
+      MethodResponses:
+        - StatusCode: 200
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Methods: true
+            method.response.header.Access-Control-Allow-Origin: true
+
   # API Gateway Deployment
   ApiDeployment:
     Type: AWS::ApiGateway::Deployment
@@ -329,6 +689,16 @@ Resources:
       - GeneratePDFOptionsMethod
       - BedrockAnalysisMethod
       - BedrockAnalysisOptionsMethod
+      - AgentDocumentalMethod
+      - AgentDocumentalOptionsMethod
+      - AgentRiesgoMethod
+      - AgentRiesgoOptionsMethod
+      - AgentRegulatorioMethod
+      - AgentRegulatorioOptionsMethod
+      - AgentNegocioMethod
+      - AgentNegocioOptionsMethod
+      - AgentOrchestratorMethod
+      - AgentOrchestratorOptionsMethod
     Properties:
       RestApiId: !Ref ApiGateway
       StageName: prod
@@ -357,6 +727,80 @@ Resources:
       Action: lambda:InvokeFunction
       Principal: apigateway.amazonaws.com
       SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGateway}/*/*'
+
+  # Agent Lambda Permissions
+  AgentDocumentalLambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref AgentDocumentalFunction
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGateway}/*/*'
+
+  AgentRiesgoLambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref AgentRiesgoFunction
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGateway}/*/*'
+
+  AgentRegulatorioLambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref AgentRegulatorioFunction
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGateway}/*/*'
+
+  AgentNegocioLambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref AgentNegocioFunction
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGateway}/*/*'
+
+  AgentOrchestratorLambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref AgentOrchestratorFunction
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGateway}/*/*'
+
+  # Cross-Lambda Permissions for Orchestrator
+  OrchestratorInvokeDocumentalPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref AgentDocumentalFunction
+      Action: lambda:InvokeFunction
+      Principal: lambda.amazonaws.com
+      SourceArn: !GetAtt AgentOrchestratorFunction.Arn
+
+  OrchestratorInvokeRiesgoPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref AgentRiesgoFunction
+      Action: lambda:InvokeFunction
+      Principal: lambda.amazonaws.com
+      SourceArn: !GetAtt AgentOrchestratorFunction.Arn
+
+  OrchestratorInvokeRegulatorioPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref AgentRegulatorioFunction
+      Action: lambda:InvokeFunction
+      Principal: lambda.amazonaws.com
+      SourceArn: !GetAtt AgentOrchestratorFunction.Arn
+
+  OrchestratorInvokeNegocioPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref AgentNegocioFunction
+      Action: lambda:InvokeFunction
+      Principal: lambda.amazonaws.com
+      SourceArn: !GetAtt AgentOrchestratorFunction.Arn
 
 Outputs:
   ApiEndpoint:

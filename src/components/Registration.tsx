@@ -19,43 +19,46 @@ export default function Registration({ userData, setUserData, nextStep }: Regist
   };
 
   return (
-    <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full">
-      <div className="text-center mb-6">
-        <h1 className="text-2xl font-bold text-blue-600">Grupo CIBest</h1>
-        <p className="text-yellow-500">Powered by AWS</p>
+    <div className="bg-white p-8 rounded-xl shadow-xl max-w-md w-full border border-gray-100">
+      <div className="text-center mb-8">
+        <h1 className="text-3xl font-bold text-blue-700 mb-1">Grupo CIBest</h1>
+        <p className="text-orange-500 font-medium">Powered by AWS</p>
       </div>
-      <h2 className="text-xl font-semibold mb-4">Bienvenido</h2>
+      <h2 className="text-xl font-semibold mb-6 text-gray-800">Bienvenido</h2>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium">Nombre</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Nombre</label>
           <input
             {...register('name', { required: 'Nombre es requerido' })}
-            className="w-full p-2 border rounded"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
             type="text"
+            placeholder="Juan Sebastian Hoyos Mesa"
           />
-          {errors.name && <p className="text-red-500 text-sm">{errors.name.message}</p>}
+          {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>}
         </div>
         <div>
-          <label className="block text-sm font-medium">Correo</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Correo</label>
           <input
             {...register('email', { required: 'Correo es requerido', pattern: { value: /^\S+@\S+$/, message: 'Correo inválido' } })}
-            className="w-full p-2 border rounded"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
             type="email"
+            placeholder="juansebas1307@gmail.com"
           />
-          {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
+          {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>}
         </div>
         <div>
-          <label className="block text-sm font-medium">Cargo</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Cargo</label>
           <input
             {...register('position', { required: 'Cargo es requerido' })}
-            className="w-full p-2 border rounded"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
             type="text"
+            placeholder="Gerente Comercial"
           />
-          {errors.position && <p className="text-red-500 text-sm">{errors.position.message}</p>}
+          {errors.position && <p className="text-red-500 text-sm mt-1">{errors.position.message}</p>}
         </div>
         <button
           type="submit"
-          className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700"
+          className="w-full bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 font-medium transition-colors shadow-md hover:shadow-lg"
         >
           Iniciar experiencia
         </button>

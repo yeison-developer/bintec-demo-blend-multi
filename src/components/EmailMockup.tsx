@@ -2,12 +2,17 @@
 
 interface EmailMockupProps {
   userData: { name: string; email: string; position: string };
+  goToRegistration: () => void;
 }
 
-export default function EmailMockup({ userData }: EmailMockupProps) {
+export default function EmailMockup({ userData, goToRegistration }: EmailMockupProps) {
   return (
-    <div className="bg-white p-8 rounded-lg shadow-lg max-w-2xl w-full">
-      <h2 className="text-xl font-semibold mb-6">Correo Recibido</h2>
+    <div className="bg-white p-8 rounded-xl shadow-xl max-w-2xl w-full border border-gray-100">
+      <div className="text-center mb-6">
+        <h1 className="text-2xl font-bold text-blue-700 mb-1">Grupo CIBest</h1>
+        <p className="text-orange-500 font-medium mb-4">Powered by AWS</p>
+        <h2 className="text-xl font-semibold text-gray-800">Correo Recibido</h2>
+      </div>
       <div className="border p-6 bg-gray-50">
         <div className="mb-4">
           <strong>Asunto:</strong> Tu experiencia en el stand – Solución de IA Grupo CIBest
@@ -35,7 +40,15 @@ export default function EmailMockup({ userData }: EmailMockupProps) {
           <p>Atentamente,<br />Equipo Grupo CIBest</p>
         </div>
       </div>
-      <p className="mt-6 text-center text-gray-600">¡Experiencia completada! Gracias por participar.</p>
+      <div className="mt-6 text-center">
+        <p className="text-gray-600 mb-4">¡Experiencia completada! Gracias por participar.</p>
+        <button
+          onClick={goToRegistration}
+          className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 py-3 rounded-lg font-medium transition-all shadow-lg hover:shadow-xl transform hover:scale-105"
+        >
+          🔄 Nueva Experiencia
+        </button>
+      </div>
     </div>
   );
 }

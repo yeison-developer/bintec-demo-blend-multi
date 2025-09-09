@@ -69,3 +69,43 @@ export const analyzeWithBedrock = async (userData: UserData, question: string) =
     throw error;
   }
 };
+
+export const orchestrateAgents = async (userData: UserData, question: string) => {
+  try {
+    const response = await fetch(`${API_ENDPOINT}/agent-orchestrator`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        userData,
+        question
+      })
+    });
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Error orchestrating agents:', error);
+    throw error;
+  }
+};
+
+export const invokeAgent = async (agentType: string, userData: UserData, question: string) => {
+  try {
+    const response = await fetch(`${API_ENDPOINT}/agent-${agentType}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        userData,
+        question
+      })
+    });
+    
+    return await response.json();
+  } catch (error) {
+    console.error(`Error invoking ${agentType} agent:`, error);
+    throw error;
+  }
+};
