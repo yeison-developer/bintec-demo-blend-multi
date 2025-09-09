@@ -1,5 +1,5 @@
-const AWS = require('aws-sdk');
-const bedrock = new AWS.BedrockRuntime({ region: 'us-east-1' });
+const { BedrockRuntimeClient, InvokeModelCommand } = require('@aws-sdk/client-bedrock-runtime');
+const client = new BedrockRuntimeClient({ region: 'us-east-1' });
 
 exports.handler = async (event) => {
     try {
@@ -32,8 +32,9 @@ Responde de forma concisa y profesional en español.`;
             })
         };
 
-        const response = await bedrock.invokeModel(params).promise();
-        const responseBody = JSON.parse(response.body.toString());
+        const command = new InvokeModelCommand(params);
+        const response = await client.send(command);
+        const responseBody = JSON.parse(new TextDecoder().decode(response.body));
         
         return {
             statusCode: 200,

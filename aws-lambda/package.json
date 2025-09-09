@@ -2,7 +2,9 @@
   "name": "bintec-lambda-functions",
   "version": "1.0.0",
   "dependencies": {
-    "aws-sdk": "^2.1691.0",
+    "@aws-sdk/client-bedrock-runtime": "^3.0.0",
+    "@aws-sdk/client-ses": "^3.0.0",
+    "@aws-sdk/client-s3": "^3.0.0",
     "pdfkit": "^0.17.2"
   }
 }
