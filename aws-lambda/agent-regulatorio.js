@@ -3,8 +3,24 @@ const { BedrockRuntimeClient, InvokeModelCommand } = require("@aws-sdk/client-be
 const client = new BedrockRuntimeClient({ region: "us-east-1" });
 
 exports.handler = async (event) => {
+    const corsHeaders = {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "Content-Type",
+        "Access-Control-Allow-Methods": "POST, OPTIONS"
+    };
+    
+    // Handle preflight OPTIONS request
+    if (event.httpMethod === 'OPTIONS') {
+        return {
+            statusCode: 200,
+            headers: corsHeaders,
+            body: ''
+        };
+    }
+    
     try {
-        const { userData, question } = JSON.parse(event.body);
+        const { userData, question } = JSON.parse(event.body || '{}');
         
         const prompt = `Eres un agente especializado en cumplimiento regulatorio financiero de Grupo CIBest.
 
@@ -83,12 +99,7 @@ Enfócate en regulaciones financieras mexicanas y mejores prácticas.`;
         
         return {
             statusCode: 200,
-            headers: {
-                "Content-Type": "application/json",
-                "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Headers": "Content-Type",
-                "Access-Control-Allow-Methods": "POST, OPTIONS"
-            },
+            headers: corsHeaders,
             body: JSON.stringify({
                 agentType: "regulatorio",
                 status: "completed",
@@ -101,12 +112,7 @@ Enfócate en regulaciones financieras mexicanas y mejores prácticas.`;
     } catch (error) {
         return {
             statusCode: 200,
-            headers: {
-                "Content-Type": "application/json",
-                "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Headers": "Content-Type",
-                "Access-Control-Allow-Methods": "POST, OPTIONS"
-            },
+            headers: corsHeaders,
             body: JSON.stringify({
                 agentType: "regulatorio",
                 status: "error",

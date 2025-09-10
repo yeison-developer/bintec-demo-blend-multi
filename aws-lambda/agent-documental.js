@@ -3,6 +3,19 @@ const { BedrockRuntimeClient, InvokeModelCommand } = require("@aws-sdk/client-be
 const client = new BedrockRuntimeClient({ region: "us-east-1" });
 
 exports.handler = async (event) => {
+    // Handle preflight OPTIONS request
+    if (event.httpMethod === 'OPTIONS') {
+        return {
+            statusCode: 200,
+            headers: {
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Headers": "Content-Type",
+                "Access-Control-Allow-Methods": "POST, OPTIONS"
+            },
+            body: ''
+        };
+    }
+    
     try {
         const { userData, question } = JSON.parse(event.body);
         
