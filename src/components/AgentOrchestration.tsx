@@ -81,15 +81,22 @@ export default function AgentOrchestration({ userData, question, setAnalysisResu
   }, [agentResults, setAnalysisResult]);
 
   return (
-    <div className="bg-white p-8 rounded-xl shadow-xl max-w-7xl w-full border border-gray-100">
+    <div className="bg-white agent-card p-8 rounded-xl shadow-xl max-w-7xl w-full border border-gray-100">
       <div className="text-center mb-8">
-        <h1 className="text-2xl font-bold text-blue-700 mb-2">Grupo CIBest</h1>
-        <p className="text-orange-500 font-medium mb-4">Powered by AWS</p>
+        <div className="flex items-center justify-center mb-2">
+          <img src="/images/Bintec.webp" alt="Bintec" className="h-8 mr-2"/>
+          <span className="text-lg font-bold text-gray-800">x</span>
+          <img src="/images/Blend360.webp" alt="Blend360" className="h-8 ml-2"/>
+        </div>
+        <div className="flex items-center justify-center mb-4">
+          <span className="text-sm text-gray-600 mr-2">Powered by</span>
+          <img src="/images/Logo-AWS-smile.webp" alt="AWS" className="h-6"/>
+        </div>
         <h2 className="text-xl font-semibold text-gray-800">Orquestación de Agentes IA</h2>
       </div>
       
       <div className="flex justify-center items-center mb-8">
-        <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-full animate-pulse shadow-lg">
+        <div className="bg-gradient-to-r from-blue-900 to-orange-500 text-white px-6 py-3 rounded-full animate-pulse shadow-lg">
           🤖 Agente Orquestador
         </div>
       </div>
@@ -182,7 +189,7 @@ export default function AgentOrchestration({ userData, question, setAnalysisResu
             </p>
             <button
               onClick={startAnalysis}
-              className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 py-3 rounded-lg font-medium transition-all shadow-lg hover:shadow-xl transform hover:scale-105"
+              className="bg-gradient-to-r from-blue-900 to-orange-500 hover:from-blue-800 hover:to-orange-600 text-white px-8 py-3 rounded-lg font-medium transition-all shadow-lg hover:shadow-xl transform hover:scale-105"
             >
               🚀 Iniciar Análisis IA
             </button>

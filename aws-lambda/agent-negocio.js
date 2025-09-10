@@ -47,11 +47,39 @@ Enfócate en oportunidades concretas y estrategias de crecimiento.`;
         const reasoning = result.content[0].text;
         
         const confidence = Math.floor(Math.random() * 15) + 85; // 85-100%
-        const recommendations = [
+        
+        // Generar recomendaciones específicas
+        const recommendationPrompt = `Basado en este análisis de negocio: "${reasoning.substring(0, 500)}", genera exactamente 3 recomendaciones específicas para oportunidades de crecimiento. Responde solo con las recomendaciones separadas por |`;
+        
+        const recCommand = new InvokeModelCommand({
+            modelId: "anthropic.claude-3-sonnet-20240229-v1:0",
+            body: JSON.stringify({
+                anthropic_version: "bedrock-2023-05-31",
+                max_tokens: 200,
+                messages: [{
+                    role: "user",
+                    content: recommendationPrompt
+                }]
+            }),
+            contentType: "application/json"
+        });
+        
+        let recommendations = [
             "Aceleración de la transformación digital",
             "Desarrollo de productos financieros innovadores",
             "Establecimiento de alianzas estratégicas"
         ];
+        
+        try {
+            const recResponse = await client.send(recCommand);
+            const recResult = JSON.parse(new TextDecoder().decode(recResponse.body));
+            const dynamicRecs = recResult.content[0].text.split('|').map(r => r.trim()).filter(r => r.length > 0);
+            if (dynamicRecs.length >= 3) {
+                recommendations = dynamicRecs.slice(0, 3);
+            }
+        } catch (error) {
+            console.log('Using fallback recommendations');
+        }
         
         return {
             statusCode: 200,

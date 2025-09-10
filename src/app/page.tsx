@@ -5,7 +5,7 @@ import '../amplify-config'; // Configure Amplify
 import Registration from '../components/Registration';
 import InitialQuestion from '../components/InitialQuestion';
 import AgentOrchestration from '../components/AgentOrchestration';
-import ConsolidatedDashboard from '../components/ConsolidatedDashboard';
+
 import ResultsGeneration from '../components/ResultsGeneration';
 import EmailMockup from '../components/EmailMockup';
 
@@ -45,9 +45,9 @@ export default function Home() {
     <Registration key="reg" userData={userData} setUserData={setUserData} nextStep={nextStep} />,
     <InitialQuestion key="question" question={question} setQuestion={setQuestion} nextStep={nextStep} />,
     <AgentOrchestration key="orchestration" userData={userData} question={question} setAnalysisResult={setAnalysisResult} nextStep={nextStep} />,
-    <ConsolidatedDashboard key="dashboard" analysisResult={analysisResult} nextStep={nextStep} />,
-    <ResultsGeneration key="results" userData={userData} question={question} nextStep={nextStep} />,
-    <EmailMockup key="email" userData={userData} goToRegistration={goToRegistration} />
+
+    <ResultsGeneration key="results" userData={userData} question={question} analysisResult={analysisResult} nextStep={nextStep} />,
+    <EmailMockup key="email" userData={userData} question={question} analysisResult={analysisResult} goToRegistration={goToRegistration} />
   ];
 
   return (

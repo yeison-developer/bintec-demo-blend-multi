@@ -9,10 +9,10 @@ interface InitialQuestionProps {
 }
 
 const suggestions = [
-  "Dame una visión consolidada de este cliente en todo el Grupo CIBest",
-  "¿Qué riesgos regulatorios y financieros tiene este cliente en todas las filiales?",
-  "Genera un reporte ejecutivo para el comité del Grupo",
-  "Simula qué pasaría si aumenta la tasa de interés 100 pb"
+  "¿Cómo evolucionará la banca de Bancolombia en los próximos 5 años con IA y tecnología cuántica?",
+  "¿Qué impacto tendrán los agentes de IA en la rentabilidad de Bancolombia para 2030?",
+  "¿Cómo afectará la criptografía poscuántica a la seguridad bancaria de Bancolombia?",
+  "¿Qué escenarios de riesgo digital enfrentará Bancolombia en la próxima década?"
 ];
 
 export default function InitialQuestion({ question, setQuestion, nextStep }: InitialQuestionProps) {
@@ -25,7 +25,14 @@ export default function InitialQuestion({ question, setQuestion, nextStep }: Ini
 
   return (
     <div className="bg-white p-8 rounded-lg shadow-lg max-w-2xl w-full">
-      <h2 className="text-xl font-semibold mb-4">Formula tu pregunta a la IA</h2>
+      <div className="text-center mb-6">
+        <div className="flex items-center justify-center mb-2">
+          <img src="/images/Bintec.webp" alt="Bintec" className="h-12 mr-4"/>
+          <span className="text-2xl font-bold text-gray-800">2025</span>
+        </div>
+        <p className="text-orange-500 font-medium mb-2">Tecnología que conecta, innovación que transforma</p>
+        <h2 className="text-xl font-semibold text-gray-800">Análisis Prospectivo con IA Especializada</h2>
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         {suggestions.map((sug, index) => (
           <div
@@ -42,11 +49,11 @@ export default function InitialQuestion({ question, setQuestion, nextStep }: Ini
         onChange={(e) => setInputQuestion(e.target.value)}
         className="w-full p-2 border rounded mb-4"
         rows={4}
-        placeholder="Escribe tu pregunta aquí..."
+        placeholder="Consulta sobre el futuro de la banca, escenarios prospectivos, tendencias tecnológicas..."
       />
       <button
         onClick={handleSubmit}
-        className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700"
+        className="w-full bg-gradient-to-r from-orange-500 to-red-500 text-white p-2 rounded hover:from-orange-600 hover:to-red-600"
         disabled={!inputQuestion.trim()}
       >
         Enviar pregunta

@@ -6,7 +6,7 @@ interface UserData {
   position: string;
 }
 
-export const sendEmail = async (userData: UserData, question: string) => {
+export const sendEmail = async (userData: UserData, question: string, analysisResult?: any) => {
   try {
     const response = await fetch(`${API_ENDPOINT}/send-email`, {
       method: 'POST',
@@ -17,7 +17,8 @@ export const sendEmail = async (userData: UserData, question: string) => {
         email: userData.email,
         name: userData.name,
         question: question,
-        reportData: {}
+        reportData: {},
+        analysisResult: analysisResult
       })
     });
     

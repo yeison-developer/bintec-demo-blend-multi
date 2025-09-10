@@ -21,8 +21,15 @@ export default function Registration({ userData, setUserData, nextStep }: Regist
   return (
     <div className="bg-white p-8 rounded-xl shadow-xl max-w-md w-full border border-gray-100">
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-blue-700 mb-1">Grupo CIBest</h1>
-        <p className="text-orange-500 font-medium">Powered by AWS</p>
+        <div className="flex items-center justify-center mb-2">
+          <img src="/images/Bintec.webp" alt="Bintec" className="h-8 mr-2"/>
+          <span className="text-lg font-bold text-gray-800">x</span>
+          <img src="/images/Blend360.webp" alt="Blend360" className="h-8 ml-2"/>
+        </div>
+        <div className="flex items-center justify-center">
+          <span className="text-sm text-gray-600 mr-2">Powered by</span>
+          <img src="/images/Logo-AWS-smile.webp" alt="AWS" className="h-6"/>
+        </div>
       </div>
       <h2 className="text-xl font-semibold mb-6 text-gray-800">Bienvenido</h2>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -58,7 +65,7 @@ export default function Registration({ userData, setUserData, nextStep }: Regist
         </div>
         <button
           type="submit"
-          className="w-full bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 font-medium transition-colors shadow-md hover:shadow-lg"
+          className="w-full bg-gradient-to-r from-blue-900 to-orange-500 text-white p-3 rounded-lg hover:from-blue-800 hover:to-orange-600 font-medium transition-colors shadow-md hover:shadow-lg"
         >
           Iniciar experiencia
         </button>

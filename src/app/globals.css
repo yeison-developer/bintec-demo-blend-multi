@@ -10,7 +10,15 @@
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
-    --foreground: #ededed;
+    --foreground: #ffffff;
+  }
+  
+  .bg-white:not(.agent-card) *:not(button) {
+    color: #1f2937 !important;
+  }
+  
+  input, textarea {
+    color: #1f2937 !important;
   }
 }
 
