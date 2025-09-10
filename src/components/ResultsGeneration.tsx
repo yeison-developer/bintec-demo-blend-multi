@@ -76,7 +76,7 @@ export default function ResultsGeneration({ userData, question, analysisResult, 
           </div>
           <button
             onClick={downloadPDF}
-            className="mt-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+            className="mt-4 bg-gradient-to-r from-blue-900 to-orange-500 text-white px-4 py-2 rounded hover:from-blue-800 hover:to-orange-600"
           >
             Descargar PDF
           </button>
@@ -99,14 +99,14 @@ export default function ResultsGeneration({ userData, question, analysisResult, 
       <div className="flex gap-4">
         <button
           onClick={handleSend}
-          className="bg-blue-600 text-white p-2 rounded hover:bg-blue-700"
+          className="bg-gradient-to-r from-blue-900 to-orange-500 text-white p-2 rounded hover:from-blue-800 hover:to-orange-600"
           disabled={sending || emailSent}
         >
           {sending ? 'Enviando...' : emailSent ? 'Correo Enviado' : 'Enviar automáticamente'}
         </button>
         <button
           onClick={nextStep}
-          className="bg-gray-600 text-white p-2 rounded hover:bg-gray-700"
+          className="bg-gradient-to-r from-green-600 to-green-700 text-white p-2 rounded hover:from-green-700 hover:to-green-800"
         >
           Continuar
         </button>

@@ -62,7 +62,7 @@ export default function EmailMockup({ userData, question, analysisResult, goToRe
         <p className="text-gray-600 mb-4">¡Experiencia completada! Gracias por participar.</p>
         <button
           onClick={goToRegistration}
-          className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 py-3 rounded-lg font-medium transition-all shadow-lg hover:shadow-xl transform hover:scale-105"
+          className="bg-gradient-to-r from-blue-900 to-orange-500 hover:from-blue-800 hover:to-orange-600 text-white px-6 py-3 rounded-lg font-medium transition-all shadow-lg hover:shadow-xl transform hover:scale-105"
         >
           🔄 Nueva Experiencia
         </button>
