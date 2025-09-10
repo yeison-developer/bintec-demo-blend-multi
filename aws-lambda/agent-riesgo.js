@@ -85,7 +85,9 @@ Sé específico sobre riesgos financieros y estrategias de mitigación.`;
             statusCode: 200,
             headers: {
                 "Content-Type": "application/json",
-                "Access-Control-Allow-Origin": "*"
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Headers": "Content-Type",
+                "Access-Control-Allow-Methods": "POST, OPTIONS"
             },
             body: JSON.stringify({
                 agentType: "riesgo",
@@ -101,7 +103,9 @@ Sé específico sobre riesgos financieros y estrategias de mitigación.`;
             statusCode: 200,
             headers: {
                 "Content-Type": "application/json",
-                "Access-Control-Allow-Origin": "*"
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Headers": "Content-Type",
+                "Access-Control-Allow-Methods": "POST, OPTIONS"
             },
             body: JSON.stringify({
                 agentType: "riesgo",
