@@ -1,18 +1,18 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: 'Bintec Demo - AWS Infrastructure'
+Description: Bintec Demo - AWS Infrastructure
 
 Parameters:
   DomainName:
     Type: String
-    Default: 'blend360.com'
-    Description: 'Domain name for SES email sending'
+    Default: gmail.com
+    Description: Domain name for SES email sending
 
 Resources:
   # S3 Bucket for PDF storage
   ReportsBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub 'bintec-demo-reports-${AWS::AccountId}-${AWS::StackName}'
+      BucketName: !Sub bintec-demo-reports-${AWS::AccountId}-${AWS::StackName}
       PublicAccessBlockConfiguration:
         BlockPublicAcls: true
         BlockPublicPolicy: true
@@ -20,9 +20,14 @@ Resources:
         RestrictPublicBuckets: true
       CorsConfiguration:
         CorsRules:
-          - AllowedHeaders: ['*']
-            AllowedMethods: [GET, PUT, POST]
-            AllowedOrigins: ['*']
+          - AllowedHeaders:
+              - '*'
+            AllowedMethods:
+              - GET
+              - PUT
+              - POST
+            AllowedOrigins:
+              - '*'
 
   # IAM Role for Lambda functions
   LambdaExecutionRole:
@@ -51,7 +56,7 @@ Resources:
                 Action:
                   - s3:PutObject
                   - s3:GetObject
-                Resource: !Sub '${ReportsBucket.Arn}/*'
+                Resource: !Sub ${ReportsBucket.Arn}/*
               - Effect: Allow
                 Action:
                   - bedrock:InvokeModel
@@ -71,7 +76,7 @@ Resources:
       Role: !GetAtt LambdaExecutionRole.Arn
       Environment:
         Variables:
-          SES_FROM_EMAIL: 'juan.tinjaca@blend360.com'
+          SES_FROM_EMAIL: juansebas1307@gmail.com
       Code:
         ZipFile: |
           const AWS = require('aws-sdk');
@@ -111,24 +116,24 @@ Resources:
         ZipFile: |
           const { BedrockRuntimeClient, InvokeModelCommand } = require('@aws-sdk/client-bedrock-runtime');
           const client = new BedrockRuntimeClient({ region: 'us-east-1' });
-          
+
           exports.handler = async (event) => {
               try {
                   const { question, userData } = JSON.parse(event.body);
-                  
-                  const prompt = `Eres un analista financiero experto de Grupo CIBest. 
-                  
+
+                  const prompt = `Eres un analista financiero experto de Grupo CIBest.
+
           Cliente: ${userData.name} (${userData.position})
           Pregunta: ${question}
-          
+
           Proporciona un análisis financiero profesional que incluya:
           1. Análisis de la situación actual
-          2. Identificación de riesgos y oportunidades  
+          2. Identificación de riesgos y oportunidades
           3. Proyección prospectiva específica
           4. Recomendaciones estratégicas
-          
+
           Responde de forma concisa y profesional en español.`;
-          
+
                   const params = {
                       modelId: 'anthropic.claude-3-sonnet-20240229-v1:0',
                       contentType: 'application/json',
@@ -142,11 +147,11 @@ Resources:
                           }]
                       })
                   };
-          
+
                   const command = new InvokeModelCommand(params);
                   const response = await client.send(command);
                   const responseBody = JSON.parse(new TextDecoder().decode(response.body));
-                  
+
                   return {
                       statusCode: 200,
                       headers: {
@@ -297,11 +302,11 @@ Resources:
         ZipFile: |
           const AWS = require('aws-sdk');
           const lambda = new AWS.Lambda();
-          
+
           exports.handler = async (event) => {
             const { userData, question } = JSON.parse(event.body);
             const agents = ['agent-documental', 'agent-riesgo', 'agent-regulatorio', 'agent-negocio'];
-            
+
             const results = await Promise.all(
               agents.map(async (agent) => {
                 const params = {
@@ -312,7 +317,7 @@ Resources:
                 return JSON.parse(JSON.parse(result.Payload).body);
               })
             );
-            
+
             return {
               statusCode: 200,
               headers: { "Access-Control-Allow-Origin": "*" },
@@ -351,7 +356,7 @@ Resources:
       Integration:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
-        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${SendEmailFunction.Arn}/invocations'
+        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${SendEmailFunction.Arn}/invocations
 
   SendEmailOptionsMethod:
     Type: AWS::ApiGateway::Method
@@ -365,9 +370,9 @@ Resources:
         IntegrationResponses:
           - StatusCode: 200
             ResponseParameters:
-              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
-              method.response.header.Access-Control-Allow-Methods: "'POST,OPTIONS'"
-              method.response.header.Access-Control-Allow-Origin: "'*'"
+              method.response.header.Access-Control-Allow-Headers: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'''
+              method.response.header.Access-Control-Allow-Methods: '''POST,OPTIONS'''
+              method.response.header.Access-Control-Allow-Origin: '''*'''
         RequestTemplates:
           application/json: '{"statusCode": 200}'
       MethodResponses:
@@ -394,7 +399,7 @@ Resources:
       Integration:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
-        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GeneratePDFFunction.Arn}/invocations'
+        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GeneratePDFFunction.Arn}/invocations
 
   GeneratePDFOptionsMethod:
     Type: AWS::ApiGateway::Method
@@ -408,9 +413,9 @@ Resources:
         IntegrationResponses:
           - StatusCode: 200
             ResponseParameters:
-              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
-              method.response.header.Access-Control-Allow-Methods: "'POST,OPTIONS'"
-              method.response.header.Access-Control-Allow-Origin: "'*'"
+              method.response.header.Access-Control-Allow-Headers: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'''
+              method.response.header.Access-Control-Allow-Methods: '''POST,OPTIONS'''
+              method.response.header.Access-Control-Allow-Origin: '''*'''
         RequestTemplates:
           application/json: '{"statusCode": 200}'
       MethodResponses:
@@ -437,7 +442,7 @@ Resources:
       Integration:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
-        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${BedrockAnalysisFunction.Arn}/invocations'
+        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${BedrockAnalysisFunction.Arn}/invocations
 
   BedrockAnalysisOptionsMethod:
     Type: AWS::ApiGateway::Method
@@ -451,9 +456,9 @@ Resources:
         IntegrationResponses:
           - StatusCode: 200
             ResponseParameters:
-              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
-              method.response.header.Access-Control-Allow-Methods: "'POST,OPTIONS'"
-              method.response.header.Access-Control-Allow-Origin: "'*'"
+              method.response.header.Access-Control-Allow-Headers: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'''
+              method.response.header.Access-Control-Allow-Methods: '''POST,OPTIONS'''
+              method.response.header.Access-Control-Allow-Origin: '''*'''
         RequestTemplates:
           application/json: '{"statusCode": 200}'
       MethodResponses:
@@ -481,7 +486,7 @@ Resources:
       Integration:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
-        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AgentDocumentalFunction.Arn}/invocations'
+        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AgentDocumentalFunction.Arn}/invocations
 
   AgentDocumentalOptionsMethod:
     Type: AWS::ApiGateway::Method
@@ -495,9 +500,9 @@ Resources:
         IntegrationResponses:
           - StatusCode: 200
             ResponseParameters:
-              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
-              method.response.header.Access-Control-Allow-Methods: "'POST,OPTIONS'"
-              method.response.header.Access-Control-Allow-Origin: "'*'"
+              method.response.header.Access-Control-Allow-Headers: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'''
+              method.response.header.Access-Control-Allow-Methods: '''POST,OPTIONS'''
+              method.response.header.Access-Control-Allow-Origin: '''*'''
         RequestTemplates:
           application/json: '{"statusCode": 200}'
       MethodResponses:
@@ -524,7 +529,7 @@ Resources:
       Integration:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
-        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AgentRiesgoFunction.Arn}/invocations'
+        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AgentRiesgoFunction.Arn}/invocations
 
   AgentRiesgoOptionsMethod:
     Type: AWS::ApiGateway::Method
@@ -538,9 +543,9 @@ Resources:
         IntegrationResponses:
           - StatusCode: 200
             ResponseParameters:
-              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
-              method.response.header.Access-Control-Allow-Methods: "'POST,OPTIONS'"
-              method.response.header.Access-Control-Allow-Origin: "'*'"
+              method.response.header.Access-Control-Allow-Headers: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'''
+              method.response.header.Access-Control-Allow-Methods: '''POST,OPTIONS'''
+              method.response.header.Access-Control-Allow-Origin: '''*'''
         RequestTemplates:
           application/json: '{"statusCode": 200}'
       MethodResponses:
@@ -567,7 +572,7 @@ Resources:
       Integration:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
-        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AgentRegulatorioFunction.Arn}/invocations'
+        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AgentRegulatorioFunction.Arn}/invocations
 
   AgentRegulatorioOptionsMethod:
     Type: AWS::ApiGateway::Method
@@ -581,9 +586,9 @@ Resources:
         IntegrationResponses:
           - StatusCode: 200
             ResponseParameters:
-              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
-              method.response.header.Access-Control-Allow-Methods: "'POST,OPTIONS'"
-              method.response.header.Access-Control-Allow-Origin: "'*'"
+              method.response.header.Access-Control-Allow-Headers: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'''
+              method.response.header.Access-Control-Allow-Methods: '''POST,OPTIONS'''
+              method.response.header.Access-Control-Allow-Origin: '''*'''
         RequestTemplates:
           application/json: '{"statusCode": 200}'
       MethodResponses:
@@ -610,7 +615,7 @@ Resources:
       Integration:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
-        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AgentNegocioFunction.Arn}/invocations'
+        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AgentNegocioFunction.Arn}/invocations
 
   AgentNegocioOptionsMethod:
     Type: AWS::ApiGateway::Method
@@ -624,9 +629,9 @@ Resources:
         IntegrationResponses:
           - StatusCode: 200
             ResponseParameters:
-              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
-              method.response.header.Access-Control-Allow-Methods: "'POST,OPTIONS'"
-              method.response.header.Access-Control-Allow-Origin: "'*'"
+              method.response.header.Access-Control-Allow-Headers: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'''
+              method.response.header.Access-Control-Allow-Methods: '''POST,OPTIONS'''
+              method.response.header.Access-Control-Allow-Origin: '''*'''
         RequestTemplates:
           application/json: '{"statusCode": 200}'
       MethodResponses:
@@ -653,7 +658,7 @@ Resources:
       Integration:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
-        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AgentOrchestratorFunction.Arn}/invocations'
+        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AgentOrchestratorFunction.Arn}/invocations
 
   AgentOrchestratorOptionsMethod:
     Type: AWS::ApiGateway::Method
@@ -667,9 +672,9 @@ Resources:
         IntegrationResponses:
           - StatusCode: 200
             ResponseParameters:
-              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
-              method.response.header.Access-Control-Allow-Methods: "'POST,OPTIONS'"
-              method.response.header.Access-Control-Allow-Origin: "'*'"
+              method.response.header.Access-Control-Allow-Headers: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'''
+              method.response.header.Access-Control-Allow-Methods: '''POST,OPTIONS'''
+              method.response.header.Access-Control-Allow-Origin: '''*'''
         RequestTemplates:
           application/json: '{"statusCode": 200}'
       MethodResponses:
@@ -710,7 +715,7 @@ Resources:
       FunctionName: !Ref SendEmailFunction
       Action: lambda:InvokeFunction
       Principal: apigateway.amazonaws.com
-      SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGateway}/*/*'
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGateway}/*/*
 
   GeneratePDFLambdaPermission:
     Type: AWS::Lambda::Permission
@@ -718,7 +723,7 @@ Resources:
       FunctionName: !Ref GeneratePDFFunction
       Action: lambda:InvokeFunction
       Principal: apigateway.amazonaws.com
-      SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGateway}/*/*'
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGateway}/*/*
 
   BedrockAnalysisLambdaPermission:
     Type: AWS::Lambda::Permission
@@ -726,7 +731,7 @@ Resources:
       FunctionName: !Ref BedrockAnalysisFunction
       Action: lambda:InvokeFunction
       Principal: apigateway.amazonaws.com
-      SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGateway}/*/*'
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGateway}/*/*
 
   # Agent Lambda Permissions
   AgentDocumentalLambdaPermission:
@@ -735,7 +740,7 @@ Resources:
       FunctionName: !Ref AgentDocumentalFunction
       Action: lambda:InvokeFunction
       Principal: apigateway.amazonaws.com
-      SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGateway}/*/*'
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGateway}/*/*
 
   AgentRiesgoLambdaPermission:
     Type: AWS::Lambda::Permission
@@ -743,7 +748,7 @@ Resources:
       FunctionName: !Ref AgentRiesgoFunction
       Action: lambda:InvokeFunction
       Principal: apigateway.amazonaws.com
-      SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGateway}/*/*'
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGateway}/*/*
 
   AgentRegulatorioLambdaPermission:
     Type: AWS::Lambda::Permission
@@ -751,7 +756,7 @@ Resources:
       FunctionName: !Ref AgentRegulatorioFunction
       Action: lambda:InvokeFunction
       Principal: apigateway.amazonaws.com
-      SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGateway}/*/*'
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGateway}/*/*
 
   AgentNegocioLambdaPermission:
     Type: AWS::Lambda::Permission
@@ -759,7 +764,7 @@ Resources:
       FunctionName: !Ref AgentNegocioFunction
       Action: lambda:InvokeFunction
       Principal: apigateway.amazonaws.com
-      SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGateway}/*/*'
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGateway}/*/*
 
   AgentOrchestratorLambdaPermission:
     Type: AWS::Lambda::Permission
@@ -767,7 +772,7 @@ Resources:
       FunctionName: !Ref AgentOrchestratorFunction
       Action: lambda:InvokeFunction
       Principal: apigateway.amazonaws.com
-      SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGateway}/*/*'
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGateway}/*/*
 
   # Cross-Lambda Permissions for Orchestrator
   OrchestratorInvokeDocumentalPermission:
@@ -804,8 +809,8 @@ Resources:
 
 Outputs:
   ApiEndpoint:
-    Description: 'API Gateway endpoint URL'
-    Value: !Sub 'https://${ApiGateway}.execute-api.${AWS::Region}.amazonaws.com/prod'
+    Description: API Gateway endpoint URL
+    Value: !Sub https://${ApiGateway}.execute-api.${AWS::Region}.amazonaws.com/prod
   S3Bucket:
-    Description: 'S3 bucket for reports'
+    Description: S3 bucket for reports
     Value: !Ref ReportsBucket
