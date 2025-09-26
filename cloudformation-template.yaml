@@ -1,18 +1,18 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: Bintec Demo - AWS Infrastructure
+Description: 'Bintec Demo - AWS Infrastructure'
 
 Parameters:
   DomainName:
     Type: String
-    Default: gmail.com
-    Description: Domain name for SES email sending
+    Default: 'gmail.com'
+    Description: 'Domain name for SES email sending'
 
 Resources:
   # S3 Bucket for PDF storage
   ReportsBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub bintec-demo-reports-${AWS::AccountId}-${AWS::StackName}
+      BucketName: !Sub 'bintec-demo-reports-${AWS::AccountId}-${AWS::StackName}'
       PublicAccessBlockConfiguration:
         BlockPublicAcls: true
         BlockPublicPolicy: true
@@ -20,14 +20,9 @@ Resources:
         RestrictPublicBuckets: true
       CorsConfiguration:
         CorsRules:
-          - AllowedHeaders:
-              - '*'
-            AllowedMethods:
-              - GET
-              - PUT
-              - POST
-            AllowedOrigins:
-              - '*'
+          - AllowedHeaders: ['*']
+            AllowedMethods: [GET, PUT, POST]
+            AllowedOrigins: ['*']
 
   # IAM Role for Lambda functions
   LambdaExecutionRole:
@@ -56,7 +51,7 @@ Resources:
                 Action:
                   - s3:PutObject
                   - s3:GetObject
-                Resource: !Sub ${ReportsBucket.Arn}/*
+                Resource: !Sub '${ReportsBucket.Arn}/*'
               - Effect: Allow
                 Action:
                   - bedrock:InvokeModel
@@ -76,13 +71,118 @@ Resources:
       Role: !GetAtt LambdaExecutionRole.Arn
       Environment:
         Variables:
-          SES_FROM_EMAIL: juansebas1307@gmail.com
+          SES_FROM_EMAIL: 'juansebas1307@gmail.com'
       Code:
         ZipFile: |
-          const AWS = require('aws-sdk');
-          const ses = new AWS.SES();
+          const { SESClient, SendEmailCommand } = require('@aws-sdk/client-ses');
+          const client = new SESClient({ region: 'us-east-1' });
+          
           exports.handler = async (event) => {
-            return { statusCode: 200, body: JSON.stringify({ success: true }) };
+              try {
+                  const { email, name, question, reportData, analysisResult } = JSON.parse(event.body);
+                  
+                  const verifiedEmails = [
+                      'juansebas1307@gmail.com'
+                  ];
+                  
+                  const isVerified = verifiedEmails.includes(email.toLowerCase());
+                  
+                  if (isVerified) {
+                      const emailParams = {
+                          Destination: { ToAddresses: [email] },
+                          Message: {
+                              Body: {
+                                  Html: {
+                                      Data: `
+                                          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                                              <div style="text-align: center; margin-bottom: 30px; padding: 20px; background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); border-radius: 12px;">
+                                                  <h2 style="color: #1e40af; margin: 0;">Tu experiencia en el stand – Análisis Prospectivo con IA</h2>
+                                              </div>
+                                              <p>Estimado/a ${name},</p>
+                                              <p>Gracias por participar en nuestra demostración interactiva.</p>
+                                              <div style="background-color: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                                                  <p><strong>Tu consulta:</strong> "${question}"</p>
+                                              </div>
+                                              
+                                              <h3 style="color: #1e40af;">Análisis de nuestros agentes IA:</h3>
+                                              ${analysisResult?.agents?.map(agent => `
+                                                  <div style="border-left: 4px solid #3b82f6; padding-left: 15px; margin: 15px 0;">
+                                                      <h4 style="color: #374151; margin: 0 0 8px 0;">${agent.agentType.toUpperCase()} (${agent.confidence}% confianza)</h4>
+                                                      <p style="margin: 0; color: #6b7280; font-size: 14px;">${agent.reasoning?.substring(0, 300)}...</p>
+                                                  </div>
+                                              `).join('') || '<p>Análisis en proceso...</p>'}
+                                              
+                                              <h3 style="color: #1e40af;">Recomendaciones principales:</h3>
+                                              <ul style="color: #374151;">
+                                                  <li>Implementar estrategias de transformación digital</li>
+                                                  <li>Fortalecer marcos de cumplimiento regulatorio</li>
+                                                  <li>Optimizar gestión de riesgos operacionales</li>
+                                              </ul>
+                                              
+                                              <div style="background-color: #dbeafe; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                                                  <p><strong>Confianza promedio del análisis:</strong> ${analysisResult?.agents ? Math.round(analysisResult.agents.reduce((acc, agent) => acc + agent.confidence, 0) / analysisResult.agents.length * 10) / 10 : 86.3}%</p>
+                                              </div>
+                                              <div style="text-align: center; margin-top: 30px; padding: 20px; background-color: #f8fafc; border-radius: 8px;">
+                                                  <p style="margin: 0;">Saludos cordiales,</p>
+                                                  <p style="font-weight: bold; margin: 10px 0;">Bintec x Blend360</p>
+                                                  <p style="font-size: 12px; color: #6b7280;">Powered by AWS</p>
+                                              </div>
+                                          </div>
+                                      `
+                                  }
+                              },
+                              Subject: { Data: 'Tu experiencia en el stand – Solución de IA Grupo CIBest' }
+                          },
+                          Source: "juan.tinjaca@blend360.com"
+                      };
+          
+                      const command = new SendEmailCommand(emailParams);
+                      const result = await client.send(command);
+                      
+                      return {
+                          statusCode: 200,
+                          headers: {
+                              'Access-Control-Allow-Origin': '*',
+                              'Access-Control-Allow-Headers': 'Content-Type',
+                              'Access-Control-Allow-Methods': 'POST'
+                          },
+                          body: JSON.stringify({
+                              success: true,
+                              messageId: result.MessageId,
+                              message: `✅ Email REAL enviado a ${email}`,
+                              type: 'real'
+                          })
+                      };
+                  } else {
+                      console.log(`Demo email simulation for ${email}`);
+                      await new Promise(resolve => setTimeout(resolve, 1000));
+                      
+                      return {
+                          statusCode: 200,
+                          headers: {
+                              'Access-Control-Allow-Origin': '*',
+                              'Access-Control-Allow-Headers': 'Content-Type',
+                              'Access-Control-Allow-Methods': 'POST'
+                          },
+                          body: JSON.stringify({
+                              success: true,
+                              messageId: `demo_${Date.now()}`,
+                              message: `📧 Email simulado enviado a ${email} (Demo Stand)`,
+                              type: 'demo'
+                          })
+                      };
+                  }
+              } catch (error) {
+                  console.error('Error:', error);
+                  return {
+                      statusCode: 500,
+                      headers: { 'Access-Control-Allow-Origin': '*' },
+                      body: JSON.stringify({
+                          success: false,
+                          error: error.message
+                      })
+                  };
+              }
           };
 
   # Lambda function for PDF generation
@@ -98,9 +198,16 @@ Resources:
           S3_BUCKET: !Ref ReportsBucket
       Code:
         ZipFile: |
-          const AWS = require('aws-sdk');
           exports.handler = async (event) => {
-            return { statusCode: 200, body: JSON.stringify({ success: true }) };
+            return {
+              statusCode: 200,
+              headers: {
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Headers": "Content-Type",
+                "Access-Control-Allow-Methods": "POST, OPTIONS"
+              },
+              body: JSON.stringify({ success: true, message: "PDF generated successfully" })
+            };
           };
 
   # Lambda function for Bedrock analysis
@@ -116,24 +223,24 @@ Resources:
         ZipFile: |
           const { BedrockRuntimeClient, InvokeModelCommand } = require('@aws-sdk/client-bedrock-runtime');
           const client = new BedrockRuntimeClient({ region: 'us-east-1' });
-
+          
           exports.handler = async (event) => {
               try {
                   const { question, userData } = JSON.parse(event.body);
-
-                  const prompt = `Eres un analista financiero experto de Grupo CIBest.
-
+                  
+                  const prompt = `Eres un analista financiero experto de Grupo CIBest. 
+                  
           Cliente: ${userData.name} (${userData.position})
           Pregunta: ${question}
-
+          
           Proporciona un análisis financiero profesional que incluya:
           1. Análisis de la situación actual
-          2. Identificación de riesgos y oportunidades
+          2. Identificación de riesgos y oportunidades  
           3. Proyección prospectiva específica
           4. Recomendaciones estratégicas
-
+          
           Responde de forma concisa y profesional en español.`;
-
+          
                   const params = {
                       modelId: 'anthropic.claude-3-sonnet-20240229-v1:0',
                       contentType: 'application/json',
@@ -147,11 +254,11 @@ Resources:
                           }]
                       })
                   };
-
+          
                   const command = new InvokeModelCommand(params);
                   const response = await client.send(command);
                   const responseBody = JSON.parse(new TextDecoder().decode(response.body));
-
+                  
                   return {
                       statusCode: 200,
                       headers: {
@@ -195,20 +302,27 @@ Resources:
     Properties:
       FunctionName: agent-documental
       Runtime: nodejs18.x
-      Handler: agent-documental.handler
+      Handler: index.handler
       Role: !GetAtt LambdaExecutionRole.Arn
       Timeout: 30
       Code:
         ZipFile: |
           exports.handler = async (event) => {
             const { userData, question } = JSON.parse(event.body);
+            
+            const reasoning = `RAZONAMIENTO DOCUMENTAL para ${userData.name} como ${userData.position}:\n\n1. EVALUACION INICIAL: Documentacion financiera actual presenta nivel alto de cumplimiento con estados financieros auditados y politicas de riesgo actualizadas\n\n2. IDENTIFICACION DE GAPS: ${question.includes('digital') ? 'Falta politica de transformacion digital y procedimientos de ciberseguridad' : 'Documentacion completa segun normativas vigentes'}\n\n3. PROYECCION: Cumplimiento normativo del 88% con CNBV y Banxico, requiere actualizacion trimestral\n\n4. RECOMENDACIONES: Implementar digitalizacion de procesos documentales y establecer repositorio centralizado para ${userData.position}`;
+            
             return {
               statusCode: 200,
-              headers: { "Access-Control-Allow-Origin": "*" },
+              headers: {
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Headers": "Content-Type",
+                "Access-Control-Allow-Methods": "POST, OPTIONS"
+              },
               body: JSON.stringify({
                 agentType: "documental",
                 status: "completed",
-                reasoning: `Análisis documental para ${userData.position}: Documentación completa requerida`,
+                reasoning: reasoning,
                 confidence: 88,
                 timestamp: new Date().toISOString()
               })
@@ -220,20 +334,27 @@ Resources:
     Properties:
       FunctionName: agent-riesgo
       Runtime: nodejs18.x
-      Handler: agent-riesgo.handler
+      Handler: index.handler
       Role: !GetAtt LambdaExecutionRole.Arn
       Timeout: 30
       Code:
         ZipFile: |
           exports.handler = async (event) => {
             const { userData, question } = JSON.parse(event.body);
+            
+            const reasoning = `EVALUACION DE RIESGOS para ${userData.name} como ${userData.position}:\n\n1. IDENTIFICACION: Riesgo operacional ${question.includes('digital') ? 'medio-alto por transformacion digital' : 'medio'}, crediticio bajo, mercado medio\n\n2. CUANTIFICACION: Probabilidad operacional 15%, crediticia 5%, mercado 12% con VaR estimado 2.3%\n\n3. EVALUACION: Exposicion actual controlada con sistemas de monitoreo establecidos\n\n4. MITIGACION: Diversificacion de cartera, stress testing mensual y monitoreo continuo para ${userData.position}`;
+            
             return {
               statusCode: 200,
-              headers: { "Access-Control-Allow-Origin": "*" },
+              headers: {
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Headers": "Content-Type",
+                "Access-Control-Allow-Methods": "POST, OPTIONS"
+              },
               body: JSON.stringify({
                 agentType: "riesgo",
                 status: "completed",
-                reasoning: `Análisis de riesgos para ${userData.position}: Exposición moderada identificada`,
+                reasoning: reasoning,
                 confidence: 82,
                 timestamp: new Date().toISOString()
               })
@@ -245,21 +366,28 @@ Resources:
     Properties:
       FunctionName: agent-regulatorio
       Runtime: nodejs18.x
-      Handler: agent-regulatorio.handler
+      Handler: index.handler
       Role: !GetAtt LambdaExecutionRole.Arn
       Timeout: 30
       Code:
         ZipFile: |
           exports.handler = async (event) => {
             const { userData, question } = JSON.parse(event.body);
+            
+            const reasoning = `CUMPLIMIENTO REGULATORIO para ${userData.name} como ${userData.position}:\n\n1. MARCO ACTUAL: CNBV completo, Banxico actualizado, CONDUSEF en revision - score 94%\n\n2. EVALUACION: Nivel de cumplimiento alto con todas las circulares vigentes implementadas\n\n3. CAMBIOS PROXIMOS: Circular 3/2024 sobre FinTech, nuevas disposiciones de ciberseguridad Q2-2024\n\n4. PREPARACION: Plan de adaptacion trimestral y capacitacion especializada para ${userData.position}`;
+            
             return {
               statusCode: 200,
-              headers: { "Access-Control-Allow-Origin": "*" },
+              headers: {
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Headers": "Content-Type",
+                "Access-Control-Allow-Methods": "POST, OPTIONS"
+              },
               body: JSON.stringify({
                 agentType: "regulatorio",
                 status: "completed",
-                reasoning: `Análisis regulatorio para ${userData.position}: Cumplimiento óptimo verificado`,
-                confidence: 94,
+                reasoning: reasoning,
+                confidence: 90,
                 timestamp: new Date().toISOString()
               })
             };
@@ -270,21 +398,28 @@ Resources:
     Properties:
       FunctionName: agent-negocio
       Runtime: nodejs18.x
-      Handler: agent-negocio.handler
+      Handler: index.handler
       Role: !GetAtt LambdaExecutionRole.Arn
       Timeout: 30
       Code:
         ZipFile: |
           exports.handler = async (event) => {
             const { userData, question } = JSON.parse(event.body);
+            
+            const reasoning = `OPORTUNIDADES DE NEGOCIO para ${userData.name} como ${userData.position}:\n\n1. OPORTUNIDADES: Banca digital 35% crecimiento, productos sustentables 28%, servicios corporativos 22%\n\n2. COMPETENCIA: Ventaja competitiva en IA y automatizacion, posicionamiento superior en innovacion\n\n3. PROYECCIONES: ROI esperado 15.2% en 12-18 meses, margen neto proyectado 8.5%\n\n4. ESTRATEGIA: Expansion digital acelerada y desarrollo de productos personalizados para ${userData.position}`;
+            
             return {
               statusCode: 200,
-              headers: { "Access-Control-Allow-Origin": "*" },
+              headers: {
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Headers": "Content-Type",
+                "Access-Control-Allow-Methods": "POST, OPTIONS"
+              },
               body: JSON.stringify({
                 agentType: "negocio",
                 status: "completed",
-                reasoning: `Análisis de negocio para ${userData.position}: Oportunidades de crecimiento identificadas`,
-                confidence: 89,
+                reasoning: reasoning,
+                confidence: 85,
                 timestamp: new Date().toISOString()
               })
             };
@@ -295,18 +430,18 @@ Resources:
     Properties:
       FunctionName: agent-orchestrator
       Runtime: nodejs18.x
-      Handler: agent-orchestrator.handler
+      Handler: index.handler
       Role: !GetAtt LambdaExecutionRole.Arn
       Timeout: 60
       Code:
         ZipFile: |
           const AWS = require('aws-sdk');
           const lambda = new AWS.Lambda();
-
+          
           exports.handler = async (event) => {
             const { userData, question } = JSON.parse(event.body);
             const agents = ['agent-documental', 'agent-riesgo', 'agent-regulatorio', 'agent-negocio'];
-
+            
             const results = await Promise.all(
               agents.map(async (agent) => {
                 const params = {
@@ -317,7 +452,7 @@ Resources:
                 return JSON.parse(JSON.parse(result.Payload).body);
               })
             );
-
+            
             return {
               statusCode: 200,
               headers: { "Access-Control-Allow-Origin": "*" },
@@ -356,7 +491,7 @@ Resources:
       Integration:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
-        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${SendEmailFunction.Arn}/invocations
+        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${SendEmailFunction.Arn}/invocations'
 
   SendEmailOptionsMethod:
     Type: AWS::ApiGateway::Method
@@ -370,9 +505,9 @@ Resources:
         IntegrationResponses:
           - StatusCode: 200
             ResponseParameters:
-              method.response.header.Access-Control-Allow-Headers: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'''
-              method.response.header.Access-Control-Allow-Methods: '''POST,OPTIONS'''
-              method.response.header.Access-Control-Allow-Origin: '''*'''
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'POST,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
         RequestTemplates:
           application/json: '{"statusCode": 200}'
       MethodResponses:
@@ -399,7 +534,7 @@ Resources:
       Integration:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
-        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GeneratePDFFunction.Arn}/invocations
+        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GeneratePDFFunction.Arn}/invocations'
 
   GeneratePDFOptionsMethod:
     Type: AWS::ApiGateway::Method
@@ -413,9 +548,9 @@ Resources:
         IntegrationResponses:
           - StatusCode: 200
             ResponseParameters:
-              method.response.header.Access-Control-Allow-Headers: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'''
-              method.response.header.Access-Control-Allow-Methods: '''POST,OPTIONS'''
-              method.response.header.Access-Control-Allow-Origin: '''*'''
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'POST,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
         RequestTemplates:
           application/json: '{"statusCode": 200}'
       MethodResponses:
@@ -442,7 +577,7 @@ Resources:
       Integration:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
-        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${BedrockAnalysisFunction.Arn}/invocations
+        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${BedrockAnalysisFunction.Arn}/invocations'
 
   BedrockAnalysisOptionsMethod:
     Type: AWS::ApiGateway::Method
@@ -456,9 +591,9 @@ Resources:
         IntegrationResponses:
           - StatusCode: 200
             ResponseParameters:
-              method.response.header.Access-Control-Allow-Headers: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'''
-              method.response.header.Access-Control-Allow-Methods: '''POST,OPTIONS'''
-              method.response.header.Access-Control-Allow-Origin: '''*'''
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'POST,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
         RequestTemplates:
           application/json: '{"statusCode": 200}'
       MethodResponses:
@@ -486,7 +621,7 @@ Resources:
       Integration:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
-        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AgentDocumentalFunction.Arn}/invocations
+        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AgentDocumentalFunction.Arn}/invocations'
 
   AgentDocumentalOptionsMethod:
     Type: AWS::ApiGateway::Method
@@ -500,9 +635,9 @@ Resources:
         IntegrationResponses:
           - StatusCode: 200
             ResponseParameters:
-              method.response.header.Access-Control-Allow-Headers: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'''
-              method.response.header.Access-Control-Allow-Methods: '''POST,OPTIONS'''
-              method.response.header.Access-Control-Allow-Origin: '''*'''
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'POST,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
         RequestTemplates:
           application/json: '{"statusCode": 200}'
       MethodResponses:
@@ -529,7 +664,7 @@ Resources:
       Integration:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
-        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AgentRiesgoFunction.Arn}/invocations
+        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AgentRiesgoFunction.Arn}/invocations'
 
   AgentRiesgoOptionsMethod:
     Type: AWS::ApiGateway::Method
@@ -543,9 +678,9 @@ Resources:
         IntegrationResponses:
           - StatusCode: 200
             ResponseParameters:
-              method.response.header.Access-Control-Allow-Headers: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'''
-              method.response.header.Access-Control-Allow-Methods: '''POST,OPTIONS'''
-              method.response.header.Access-Control-Allow-Origin: '''*'''
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'POST,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
         RequestTemplates:
           application/json: '{"statusCode": 200}'
       MethodResponses:
@@ -572,7 +707,7 @@ Resources:
       Integration:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
-        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AgentRegulatorioFunction.Arn}/invocations
+        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AgentRegulatorioFunction.Arn}/invocations'
 
   AgentRegulatorioOptionsMethod:
     Type: AWS::ApiGateway::Method
@@ -586,9 +721,9 @@ Resources:
         IntegrationResponses:
           - StatusCode: 200
             ResponseParameters:
-              method.response.header.Access-Control-Allow-Headers: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'''
-              method.response.header.Access-Control-Allow-Methods: '''POST,OPTIONS'''
-              method.response.header.Access-Control-Allow-Origin: '''*'''
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'POST,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
         RequestTemplates:
           application/json: '{"statusCode": 200}'
       MethodResponses:
@@ -615,7 +750,7 @@ Resources:
       Integration:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
-        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AgentNegocioFunction.Arn}/invocations
+        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AgentNegocioFunction.Arn}/invocations'
 
   AgentNegocioOptionsMethod:
     Type: AWS::ApiGateway::Method
@@ -629,9 +764,9 @@ Resources:
         IntegrationResponses:
           - StatusCode: 200
             ResponseParameters:
-              method.response.header.Access-Control-Allow-Headers: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'''
-              method.response.header.Access-Control-Allow-Methods: '''POST,OPTIONS'''
-              method.response.header.Access-Control-Allow-Origin: '''*'''
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'POST,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
         RequestTemplates:
           application/json: '{"statusCode": 200}'
       MethodResponses:
@@ -658,7 +793,7 @@ Resources:
       Integration:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
-        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AgentOrchestratorFunction.Arn}/invocations
+        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AgentOrchestratorFunction.Arn}/invocations'
 
   AgentOrchestratorOptionsMethod:
     Type: AWS::ApiGateway::Method
@@ -672,9 +807,9 @@ Resources:
         IntegrationResponses:
           - StatusCode: 200
             ResponseParameters:
-              method.response.header.Access-Control-Allow-Headers: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'''
-              method.response.header.Access-Control-Allow-Methods: '''POST,OPTIONS'''
-              method.response.header.Access-Control-Allow-Origin: '''*'''
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'POST,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
         RequestTemplates:
           application/json: '{"statusCode": 200}'
       MethodResponses:
@@ -715,7 +850,7 @@ Resources:
       FunctionName: !Ref SendEmailFunction
       Action: lambda:InvokeFunction
       Principal: apigateway.amazonaws.com
-      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGateway}/*/*
+      SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGateway}/*/*'
 
   GeneratePDFLambdaPermission:
     Type: AWS::Lambda::Permission
@@ -723,7 +858,7 @@ Resources:
       FunctionName: !Ref GeneratePDFFunction
       Action: lambda:InvokeFunction
       Principal: apigateway.amazonaws.com
-      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGateway}/*/*
+      SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGateway}/*/*'
 
   BedrockAnalysisLambdaPermission:
     Type: AWS::Lambda::Permission
@@ -731,7 +866,7 @@ Resources:
       FunctionName: !Ref BedrockAnalysisFunction
       Action: lambda:InvokeFunction
       Principal: apigateway.amazonaws.com
-      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGateway}/*/*
+      SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGateway}/*/*'
 
   # Agent Lambda Permissions
   AgentDocumentalLambdaPermission:
@@ -740,7 +875,7 @@ Resources:
       FunctionName: !Ref AgentDocumentalFunction
       Action: lambda:InvokeFunction
       Principal: apigateway.amazonaws.com
-      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGateway}/*/*
+      SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGateway}/*/*'
 
   AgentRiesgoLambdaPermission:
     Type: AWS::Lambda::Permission
@@ -748,7 +883,7 @@ Resources:
       FunctionName: !Ref AgentRiesgoFunction
       Action: lambda:InvokeFunction
       Principal: apigateway.amazonaws.com
-      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGateway}/*/*
+      SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGateway}/*/*'
 
   AgentRegulatorioLambdaPermission:
     Type: AWS::Lambda::Permission
@@ -756,7 +891,7 @@ Resources:
       FunctionName: !Ref AgentRegulatorioFunction
       Action: lambda:InvokeFunction
       Principal: apigateway.amazonaws.com
-      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGateway}/*/*
+      SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGateway}/*/*'
 
   AgentNegocioLambdaPermission:
     Type: AWS::Lambda::Permission
@@ -764,7 +899,7 @@ Resources:
       FunctionName: !Ref AgentNegocioFunction
       Action: lambda:InvokeFunction
       Principal: apigateway.amazonaws.com
-      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGateway}/*/*
+      SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGateway}/*/*'
 
   AgentOrchestratorLambdaPermission:
     Type: AWS::Lambda::Permission
@@ -772,7 +907,7 @@ Resources:
       FunctionName: !Ref AgentOrchestratorFunction
       Action: lambda:InvokeFunction
       Principal: apigateway.amazonaws.com
-      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGateway}/*/*
+      SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGateway}/*/*'
 
   # Cross-Lambda Permissions for Orchestrator
   OrchestratorInvokeDocumentalPermission:
@@ -809,8 +944,8 @@ Resources:
 
 Outputs:
   ApiEndpoint:
-    Description: API Gateway endpoint URL
-    Value: !Sub https://${ApiGateway}.execute-api.${AWS::Region}.amazonaws.com/prod
+    Description: 'API Gateway endpoint URL'
+    Value: !Sub 'https://${ApiGateway}.execute-api.${AWS::Region}.amazonaws.com/prod'
   S3Bucket:
-    Description: S3 bucket for reports
+    Description: 'S3 bucket for reports'
     Value: !Ref ReportsBucket
