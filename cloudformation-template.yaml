@@ -104,34 +104,52 @@ Resources:
                                                   <p><strong>Tu consulta:</strong> "${question}"</p>
                                               </div>
                                               
-                                              <h3 style="color: #1e40af;">Analisis de nuestros agentes IA:</h3>
-                                              ${analysisResult?.agents?.map(agent => `
-                                                  <div style="border-left: 4px solid #3b82f6; padding-left: 15px; margin: 15px 0;">
-                                                      <h4 style="color: #374151; margin: 0 0 8px 0;">${agent.agentType.toUpperCase()} (${agent.confidence}% confianza)</h4>
-                                                      <p style="margin: 0; color: #6b7280; font-size: 14px;">${agent.reasoning?.substring(0, 300)}...</p>
+                                              <h3 style="color: #1e40af;">Analisis Completo de Nuestros Agentes IA:</h3>
+                                              ${analysisResult?.agents?.map(agent => {
+                                                  const agentIcons = {
+                                                      'documental': '[DOC]',
+                                                      'riesgo': '[RISK]',
+                                                      'regulatorio': '[REG]',
+                                                      'negocio': '[BIZ]'
+                                                  };
+                                                  const icon = agentIcons[agent.agentType] || '[AI]';
+                                                  return `
+                                                  <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; margin: 20px 0; background-color: #f9fafb;">
+                                                      <h4 style="color: #1e40af; margin: 0 0 12px 0;">
+                                                          <span style="margin-right: 8px; font-weight: bold;">${icon}</span>
+                                                          AGENTE ${agent.agentType.toUpperCase()} 
+                                                          <span style="background-color: #dbeafe; color: #1e40af; padding: 2px 8px; border-radius: 12px; font-size: 12px; margin-left: 10px;">${agent.confidence}% confianza</span>
+                                                      </h4>
+                                                      <div style="color: #374151; font-size: 14px; line-height: 1.6; white-space: pre-line;">${agent.reasoning || 'Analisis en proceso...'}</div>
                                                   </div>
-                                              `).join('') || '<p>Analisis en proceso...</p>'}
+                                              `}).join('') || '<p>Analisis en proceso...</p>'}
                                               
-                                              <h3 style="color: #1e40af;">Recomendaciones principales:</h3>
-                                              <ul style="color: #374151;">
-                                                  <li>Implementar estrategias de transformacion digital</li>
-                                                  <li>Fortalecer marcos de cumplimiento regulatorio</li>
-                                                  <li>Optimizar gestion de riesgos operacionales</li>
-                                              </ul>
-                                              
-                                              <div style="background-color: #dbeafe; padding: 15px; border-radius: 8px; margin: 20px 0;">
-                                                  <p><strong>Confianza promedio del analisis:</strong> ${analysisResult?.agents ? Math.round(analysisResult.agents.reduce((acc, agent) => acc + agent.confidence, 0) / analysisResult.agents.length * 10) / 10 : 86.3}%</p>
+                                              <div style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); padding: 20px; border-radius: 12px; margin: 25px 0;">
+                                                  <h3 style="color: #0369a1; margin: 0 0 15px 0; text-align: center;">[RESUMEN] Ejecutivo Grupo CIBest</h3>
+                                                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                                                      <div style="text-align: center;">
+                                                          <div style="font-size: 24px; font-weight: bold; color: #0369a1;">${analysisResult?.agents ? Math.round(analysisResult.agents.reduce((acc, agent) => acc + agent.confidence, 0) / analysisResult.agents.length) : 86}%</div>
+                                                          <div style="font-size: 12px; color: #64748b;">Confianza Promedio</div>
+                                                      </div>
+                                                      <div style="text-align: center;">
+                                                          <div style="font-size: 24px; font-weight: bold; color: #0369a1;">${analysisResult?.agents?.length || 4}</div>
+                                                          <div style="font-size: 12px; color: #64748b;">Agentes Analizaron</div>
+                                                      </div>
+                                                  </div>
+                                                  <p style="margin: 0; color: #374151; text-align: center; font-style: italic;">"Analisis integral powered by Bancolombia + AWS"</p>
                                               </div>
-                                              <div style="text-align: center; margin-top: 30px; padding: 20px; background-color: #f8fafc; border-radius: 8px;">
-                                                  <p style="margin: 0;">Saludos cordiales,</p>
-                                                  <p style="font-weight: bold; margin: 10px 0;">Bintec x Blend360</p>
-                                                  <p style="font-size: 12px; color: #6b7280;">Powered by AWS</p>
+                                              
+
+                                              <div style="text-align: center; margin-top: 30px; padding: 25px; background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); border-radius: 12px; color: white;">
+                                                  <h4 style="margin: 0 0 10px 0; color: white;">[BANK] Grupo CIBest - Bancolombia</h4>
+                                                  <p style="margin: 0 0 8px 0; opacity: 0.9;">Innovacion Financiera + Inteligencia Artificial</p>
+                                                  <p style="font-size: 12px; margin: 0; opacity: 0.7;">Powered by AWS Bedrock & Bintec x Blend360</p>
                                               </div>
                                           </div>
                                       `
                                   }
                               },
-                              Subject: { Data: 'Tu experiencia en el stand - Solucion de IA Grupo CIBest' }
+                              Subject: { Data: '[IA] Tu Analisis Completo - Grupo CIBest Bancolombia' }
                           },
                           Source: "juan.tinjaca@blend360.com"
                       };
