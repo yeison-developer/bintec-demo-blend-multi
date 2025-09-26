@@ -61,7 +61,7 @@ export default function ResultsGeneration({ userData, question, analysisResult, 
       <p className="mb-6">La IA generó automáticamente un reporte para el analista y un correo de respuesta para el cliente.</p>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
         <div>
-          <h3 className="font-medium mb-4">Preview del Reporte PDF</h3>
+          <h3 className="font-medium mb-4">Preview del Reporte</h3>
           <div className="border p-4 bg-gray-50 max-h-64 overflow-y-auto">
             <p><strong>Reporte Ejecutivo - Análisis IA</strong></p>
             <p><strong>Cliente:</strong> {userData.name} ({userData.position})</p>
@@ -74,12 +74,7 @@ export default function ResultsGeneration({ userData, question, analysisResult, 
               </div>
             ))}
           </div>
-          <button
-            onClick={downloadPDF}
-            className="mt-4 bg-gradient-to-r from-blue-900 to-orange-500 text-white px-4 py-2 rounded hover:from-blue-800 hover:to-orange-600"
-          >
-            Descargar PDF
-          </button>
+        
         </div>
         <div>
           <h3 className="font-medium mb-4">Preview del Correo</h3>
